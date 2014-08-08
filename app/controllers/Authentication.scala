@@ -28,6 +28,7 @@ object Authentication extends Controller {
 					val browser = UserAgent.makeString(request.headers.get("User-Agent").getOrElse(""))
 					UserTokens.insert(UserToken(None, token.userId, cookieVal, java.time.Instant.now(), token.persist, browser, None))
 						.map({ t =>
+						AuthTokenManager.resolve(t.token)
 						val maxAge = if (t.sessionOnly) Some(t.expiresOn.getEpochSecond.toInt) else None
 						Redirect(routes.Application.index()).withCookies(
 							Cookie(AuthTokenManager.tokenCookieName, cookieVal, maxAge, httpOnly = true)
