@@ -1,0 +1,27 @@
+# Home page
+GET           /                           controllers.Application.index
+GET           /logout                     controllers.Authentication.logout
+# Topic List
+GET           /topic                      controllers.Application.createTopic
+# Topic View
+GET           /topic/:slug                controllers.Application.showTopic(slug)
+
+# Edit/View Own Profile
+GET           /profile                    controllers.Application.editProfile
+# View Other Profile
+GET           /profile/:user              controllers.Application.viewProfile(user)
+
+GET           /authenticate/:token        controllers.Authentication.redeemToken(token)
+
+GET           /api/whoami                 controllers.api.Root.whoami
+
+GET           /api/tokens                 controllers.api.Tokens.list
+POST          /api/tokens                 controllers.api.Tokens.create
+DELETE        /api/tokens/:id             controllers.api.Tokens.delete(id: Long)
+
+GET           /jsroutes                   controllers.JsRoutes.javascriptRoutes
+# Map static resources from the /public folder to the /assets URL path
+GET           /assets/*file               controllers.Assets.at(path="/public", file)
+
+GET           /debug                      controllers.Application.debug
+GET           /ua                         controllers.Application.useragent

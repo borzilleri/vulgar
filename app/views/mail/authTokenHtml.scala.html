@@ -1,0 +1,20 @@
+@(appName: String, loginUrl: String, timeout: Int)
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>OrchardBBS Login Link</title>
+	</head>
+	<body>
+		<div>
+			Please use this link to login to @appName<br>
+			<a href="@loginUrl">@loginUrl</a><br>
+			<br>
+			If your email client does not render the above link correctly, use this url:<br>
+			@loginUrl
+			<br>
+			Note: This link will expire after @timeout minutes, or once it has been used.
+		</div>
+		<p></p>
+		<p></p>
+	</body>
+</html>

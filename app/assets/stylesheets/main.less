@@ -1,0 +1,210 @@
+@import "lib/bootstrap/less/bootstrap";
+@import "lib/font-awesome/less/font-awesome";
+@import "variables";
+
+body {
+	margin: 0px;
+	padding: 0 0 30px;
+}
+
+.topic-list {
+	margin: 0 0 20px 0;
+	padding: 0;
+	list-style-type: none;
+
+	li {
+		border: solid lightgray;
+		border-width: 0px 2px 1px 2px;
+		&:first-child {
+			border-top-width: 1px;
+		}
+
+		margin: 0;
+		padding: 7px 12px;
+		&:hover {
+			background-color: lightgray;
+		}
+
+		.topic-unread {
+			margin-right: 5px;
+			color: @brand-danger;
+		}
+		.topic-read {
+			color: @gray-lighter;
+		}
+
+		.topic-iconline {
+			margin-top: 5px;
+			.fa {
+				padding: 0 2px;
+			}
+		}
+		.topic-titleline {
+			font-size: larger;
+			font-weight: bolder;
+			padding-left: 15px;
+			text-indent: -10px;
+		}
+		.topic-dateline {
+			font-size: smaller;
+			margin-left: 15px;
+		}
+	}
+}
+
+.post-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.post-item {
+	border-bottom: 1px solid lightsteelblue;
+	min-height: 150px;
+	margin-bottom: 7px;
+	padding-bottom: 21px;
+
+	.post-topline {
+		font-size: large;
+		margin-bottom: 5px;
+		> * {
+			padding-right: 15px;
+			&:last-child {
+				padding-right: 0px;
+			}
+		}
+	}
+	.post-author {
+		font-weight: bolder;
+	}
+	.post-date {
+		.text-muted;
+		font-size: small;
+	}
+
+	.post-avatar {
+		margin: 0 0 15px 15px;
+	}
+	.post-actions {
+		a {
+			cursor: pointer;
+			padding-left: 3px;
+			padding-right: 3px;
+			&:last-child {
+				padding-right: 0;
+			}
+		}
+	}
+
+	.post-edited-line {
+		.text-muted;
+		clear: right;
+		text-align: right;
+		margin-top: 15px;
+		font-size: xx-small;
+	}
+}
+
+.post-reply-form {
+	margin-bottom: 20px;
+}
+
+.editor-preview-button {
+	cursor: pointer;
+}
+
+.editor-actions {
+	margin-top: 5px;
+	margin-bottom: 2px;
+}
+
+.editor-title {
+	margin: 2px 0;
+}
+
+.editor {
+	// We want most of the form-control styles,
+	// Just not height & width.
+	.form-control;
+	height: auto;
+	width: auto;
+
+	margin-bottom: 5px;
+	margin-top: 2px;
+
+	.edit-pane, .preview-pane {
+		height: 95%;
+		overflow: scroll;
+	}
+
+	.preview-pane {
+		background-color: white;
+		padding: 0 3px;
+	}
+
+	.topic-create-form & {
+		min-height: 350px;
+	}
+
+	.post-body & {
+		min-height: 150px;
+		margin-right: @avatar-width+10;
+	}
+
+	.post-reply-form & {
+		min-height: 200px;
+	}
+}
+
+.edit-profile {
+	.display-name {
+		margin-bottom: 20px;
+	}
+
+	.list-group-item {
+		cursor: pointer;
+	}
+
+	.profile-avatar {
+		padding: 4px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+	}
+
+	.input-group {
+		width: 100%;
+	}
+
+	.list-group-item {
+		.btn-group {
+			.pull-right;
+			margin: -10px -15px;
+			.btn {
+				padding: 9px 15px;
+				border-radius: 0;
+
+				.list-group-item:last-child & {
+					border-bottom-right-radius: 3px;
+				}
+			}
+		}
+	}
+}
+
+.example-enter {
+	opacity: 0.01;
+	transition: opacity .5s ease;
+}
+
+.example-enter.example-enter-active {
+	opacity: 1;
+}
+
+.example-leave {
+	opacity: 1;
+	transition: opacity .5s ease;
+}
+
+.example-leave.example-leave-active {
+	opacity: 0.01;
+}

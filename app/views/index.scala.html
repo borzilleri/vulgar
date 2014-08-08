@@ -1,0 +1,23 @@
+@(title: String = "VulgarBBS")(implicit r: RequestHeader)
+<!DOCTYPE html>
+<html>
+	<head lang="en">
+		<title>@title</title>
+
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
+
+		<script type="text/javascript" src="@routes.JsRoutes.javascriptRoutes()"></script>
+		<script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
+		<script type="text/javascript" src="@routes.Assets.at("lib/react/react-with-addons.js")"></script>
+		<script type="text/javascript" src="@routes.Assets.at("lib/underscorejs/underscore-min.js")"></script>
+		<script type="text/javascript" src="@routes.Assets.at("lib/backbonejs/backbone-min.js")"></script>
+		<script type="text/javascript" src="@routes.Assets.at("lib/ace/src-min/ace.js")"></script>
+		<script type="text/javascript" src="@routes.Assets.at("lib/marked/marked.js")"></script>
+
+		<script type="text/javascript" src="@routes.Assets.at("javascripts/bundle.js")"></script>
+	</head>
+	<body></body>
+</html>
