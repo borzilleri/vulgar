@@ -58,6 +58,18 @@
 	var ProfileView = __webpack_require__(10);
 	var ProfileEdit = __webpack_require__(11);
 	
+	$.ajaxSetup({
+		converters: {
+			'text json': function(text) {
+				var result = $.parseJSON(text);
+				if( result && result.hasOwnProperty("payload") ) {
+					return result.payload;
+				}
+				return result;
+			}
+		}
+	});
+	
 	$(function() {
 		var Router = Backbone.Router.extend({
 			routes: {
@@ -148,7 +160,7 @@
 		var React = __webpack_require__(1);
 		var vent = __webpack_require__(5);
 		var NavLink = __webpack_require__(13);
-		var routes = __webpack_require__(15);
+		var routes = __webpack_require__(14);
 	
 		var PageTitle = React.createClass({displayName: 'PageTitle',
 			getInitialState: function() {
@@ -360,7 +372,7 @@
 		var React = __webpack_require__(1);
 		var marked = __webpack_require__(12);
 		var vent = __webpack_require__(5);
-		var Editor = __webpack_require__(14);
+		var Editor = __webpack_require__(15);
 	
 		var TopicTitle = React.createClass({displayName: 'TopicTitle',
 			render: function() {
@@ -574,7 +586,7 @@
 	!(__WEBPACK_AMD_DEFINE_RESULT__ = (function(require) {
 		var React = __webpack_require__(1);
 		var vent = __webpack_require__(5);
-		var Editor = __webpack_require__(14);
+		var Editor = __webpack_require__(15);
 	
 		return React.createClass({
 			componentDidMount: function() {
@@ -608,7 +620,7 @@
 		var React = __webpack_require__(1);
 		var marked = __webpack_require__(12);
 		var vent = __webpack_require__(5);
-		var Editor = __webpack_require__(14);
+		var Editor = __webpack_require__(15);
 	
 		/**
 		 * name
@@ -638,20 +650,26 @@
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/** @jsx React.DOM */
 	!(__WEBPACK_AMD_DEFINE_RESULT__ = (function(require) {
+		var $ = __webpack_require__(2);
 		var React = __webpack_require__(1);
 		var vent = __webpack_require__(5);
-		var routes = __webpack_require__(15)
+		var routes = __webpack_require__(14)
 	
 		var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+	
 		/*
-		 gravatar (readonly)
-	
-	
 		 topics created ?
 		 topics participated in ?
 		 */
 	
 		var Token = React.createClass({displayName: 'Token',
+			getDefaultProps: function() {
+				return {
+					data: {},
+					onRevoke: function() {
+					}
+				}
+			},
 			getInitialState: function() {
 				return {
 					btnActive: false
@@ -661,24 +679,23 @@
 				this.setState({btnActive: !this.state.btnActive});
 			},
 			handleRevoke: function() {
-				console.log("revoking token");
-				/**
-				 * Send AJAX Request.
-				 */
-	
+				this.props.onRevoke(this.props.data.id);
 			},
 			render: function() {
 				var actions = [];
 				if( this.state.btnActive ) {
 					actions[0] = React.DOM.div({className: "btn-group", key: "1"}, 
 						React.DOM.button({className: "btn btn-danger", onClick: this.handleRevoke}, 
-							React.DOM.i({className: "fa fa-trash-o fa-lg"}), " Revoke"
+							React.DOM.i({className: "fa fa-trash-o fa-lg"}), 
+						"Revoke"
 						)
 					);
 				}
+				var tokenName = this.props.data.name ?
+					this.props.data.name : this.props.data.browser;
 				return (
 					React.DOM.li({className: "list-group-item", onClick: this.handleClick}, 
-					this.props.children, 
+					tokenName, 
 						ReactCSSTransitionGroup({transitionName: "example"}, 
 						actions
 						)
@@ -688,18 +705,46 @@
 		});
 	
 		var UserTokens = React.createClass({displayName: 'UserTokens',
+			getInitialState: function() {
+				return {
+					tokens: []
+				}
+			},
 			componentDidMount: function() {
-	
+				var r = routes.controllers.api.Tokens.list();
+				$.ajax({
+					type: r.method,
+					url: r.url
+				}).done((function(data) {
+					this.setState({tokens: data});
+				}).bind(this));
+			},
+			revokeToken: function(tokenId) {
+				console.log("revoking token: " + tokenId);
+				var r = routes.controllers.api.Tokens.delete(tokenId);
+				$.ajax({
+					type: r.method,
+					url: r.url
+				}).done((function() {
+					this.setState({
+						tokens: _(this.state.tokens).reject(function(t) {
+							return t.id === tokenId;
+						})
+					});
+				}).bind(this));
 			},
 			render: function() {
+				var tokens = [];
+				for( var i in this.state.tokens ) {
+					tokens.push(Token({key: this.state.tokens[i].id, 
+					onRevoke: this.revokeToken, data: this.state.tokens[i]}));
+				}
+	
 				return (React.DOM.div({className: "panel panel-default"}, 
 					React.DOM.div({className: "panel-heading"}, 
 						React.DOM.h3({className: "panel-title"}, "Authentication Tokens")
 					), 
-					React.DOM.ul({className: "list-group"}, 
-						Token(null, "Mac OS X / Safari"), 
-						Token(null, "Windows 8.1 Pro / Chrome")
-					)
+					React.DOM.ul({className: "list-group"}, tokens)
 				));
 			}
 		});
@@ -780,16 +825,7 @@
 									)
 								)
 							), 
-	
-							React.DOM.div({className: "panel panel-default"}, 
-								React.DOM.div({className: "panel-heading"}, 
-									React.DOM.h3({className: "panel-title"}, "Authentication Tokens")
-								), 
-								React.DOM.ul({className: "list-group"}, 
-									Token(null, "Mac OS X / Safari"), 
-									Token(null, "Windows 8.1 Pro / Chrome")
-								)
-							)
+							UserTokens(null)
 						), 
 						React.DOM.div({className: "col-md-4 visible-md visible-lg"}, 
 							React.DOM.img({className: "profile-avatar", src: "http://gravatar.com/avatar/cd27466723d44baeab956c5157d22e00.png?s=150"})
@@ -837,6 +873,15 @@
 
 /***/ },
 /* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_RESULT__ = (function(require) {
+		return window.jsroutes;
+	}.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/** @jsx React.DOM */
@@ -967,15 +1012,6 @@
 					);
 			}
 		});
-	}.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_RESULT__ = (function(require) {
-		return window.jsroutes;
 	}.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 

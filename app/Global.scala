@@ -1,3 +1,4 @@
+import io.rampant.vulgar.security.JsonFilter
 import models.db.{UserEmails, Users}
 import models.{User, UserEmail}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -5,7 +6,7 @@ import play.api.mvc.WithFilters
 import play.api.{Application, GlobalSettings, Logger}
 import play.filters.gzip.GzipFilter
 
-object Global extends WithFilters(new GzipFilter()) with GlobalSettings {
+object Global extends WithFilters(new GzipFilter(), JsonFilter) with GlobalSettings {
 	override def onStart(app: Application): Unit = {
 		super.onStart(app)
 

@@ -3,7 +3,7 @@ package models
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, Writes}
 
-case class UserEmail(id: Option[Long], userId: Long, email: String, confirmed: Boolean)
+case class UserEmail(id: Option[Long], userId: Long, email: String, confirmed: Boolean) extends UserOwned(userId)
 
 object UserEmail {
   implicit val userEmailWrites: Writes[UserEmail] = (

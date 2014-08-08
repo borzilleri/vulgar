@@ -13,7 +13,7 @@ object Secured {
 		def transform[A](request: Request[A]) = {
 			(request.cookies.get(AuthTokenManager.tokenCookieName) match {
 				case None => Future.successful(None)
-				case Some(c) => UserTokens.find(c.value)
+				case Some(c) => UserTokens.findByToken(c.value)
 			}).flatMap({
 				case None => Future.successful(None)
 				case Some(t) => Users.find(t.userId)

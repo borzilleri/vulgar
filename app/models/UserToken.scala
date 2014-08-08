@@ -10,7 +10,7 @@ import play.api.libs.json.{JsPath, Writes}
 
 case class UserToken(id: Option[Long], userId: Long, token: String,
                      createdOn: Instant, sessionOnly: Boolean,
-                     browser: String, name: Option[String]) {
+                     browser: String, name: Option[String]) extends UserOwned(userId) {
 
 	def timeout = sessionOnly match {
 		case true => UserToken.sessionCookieTimeout

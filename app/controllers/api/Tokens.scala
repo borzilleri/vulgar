@@ -6,7 +6,6 @@ import io.rampant.vulgar.security.{AuthTokenManager, Secured}
 import models.db.{UserEmails, UserTokens}
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.db.slick.DBAction
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 
@@ -44,10 +43,16 @@ object Tokens extends Controller {
 			)
 	}
 
-	def delete(tokenId: Long) = DBAction {
-		implicit rs =>
-			implicit val s = rs.dbSession
-			UserTokens.delete(tokenId)
-			Ok
+	def delete(tokenId: Long) = (Secured.Authenticated andThen Secured.Authorized()).async {
+		request =>
+			UserTokens.find(tokenId).map({
+				case None => NotFound
+				case Some(t) =>
+					if (t.userId != request.user.get.id.get) Forbidden
+					else {
+						UserTokens.delete(tokenId)
+						Ok
+					}
+			})
 	}
 }

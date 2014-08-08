@@ -1,19 +1,25 @@
 /** @jsx React.DOM */
 define(function(require) {
+	var $ = require('jquery');
 	var React = require('react');
 	var vent = require('./EventBus');
 	var routes = require('./Routes')
 
 	var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+
 	/*
-	 gravatar (readonly)
-
-
 	 topics created ?
 	 topics participated in ?
 	 */
 
 	var Token = React.createClass({
+		getDefaultProps: function() {
+			return {
+				data: {},
+				onRevoke: function() {
+				}
+			}
+		},
 		getInitialState: function() {
 			return {
 				btnActive: false
@@ -23,24 +29,23 @@ define(function(require) {
 			this.setState({btnActive: !this.state.btnActive});
 		},
 		handleRevoke: function() {
-			console.log("revoking token");
-			/**
-			 * Send AJAX Request.
-			 */
-
+			this.props.onRevoke(this.props.data.id);
 		},
 		render: function() {
 			var actions = [];
 			if( this.state.btnActive ) {
 				actions[0] = <div className="btn-group" key="1">
 					<button className="btn btn-danger" onClick={this.handleRevoke}>
-						<i className="fa fa-trash-o fa-lg" /> Revoke
+						<i className="fa fa-trash-o fa-lg" />
+					Revoke
 					</button>
 				</div>;
 			}
+			var tokenName = this.props.data.name ?
+				this.props.data.name : this.props.data.browser;
 			return (
 				<li className="list-group-item" onClick={this.handleClick}>
-				{this.props.children}
+				{tokenName}
 					<ReactCSSTransitionGroup transitionName="example">
 					{actions}
 					</ReactCSSTransitionGroup>
@@ -50,18 +55,46 @@ define(function(require) {
 	});
 
 	var UserTokens = React.createClass({
+		getInitialState: function() {
+			return {
+				tokens: []
+			}
+		},
 		componentDidMount: function() {
-
+			var r = routes.controllers.api.Tokens.list();
+			$.ajax({
+				type: r.method,
+				url: r.url
+			}).done((function(data) {
+				this.setState({tokens: data});
+			}).bind(this));
+		},
+		revokeToken: function(tokenId) {
+			console.log("revoking token: " + tokenId);
+			var r = routes.controllers.api.Tokens.delete(tokenId);
+			$.ajax({
+				type: r.method,
+				url: r.url
+			}).done((function() {
+				this.setState({
+					tokens: _(this.state.tokens).reject(function(t) {
+						return t.id === tokenId;
+					})
+				});
+			}).bind(this));
 		},
 		render: function() {
+			var tokens = [];
+			for( var i in this.state.tokens ) {
+				tokens.push(<Token key={this.state.tokens[i].id}
+				onRevoke={this.revokeToken} data={this.state.tokens[i]}/>);
+			}
+
 			return (<div className="panel panel-default">
 				<div className="panel-heading">
 					<h3 className="panel-title">Authentication Tokens</h3>
 				</div>
-				<ul className="list-group">
-					<Token>Mac OS X / Safari</Token>
-					<Token>Windows 8.1 Pro / Chrome</Token>
-				</ul>
+				<ul className="list-group">{tokens}</ul>
 			</div>);
 		}
 	});
@@ -142,16 +175,7 @@ define(function(require) {
 								</li>
 							</ul>
 						</div>
-
-						<div className="panel panel-default">
-							<div className="panel-heading">
-								<h3 className="panel-title">Authentication Tokens</h3>
-							</div>
-							<ul className="list-group">
-								<Token>Mac OS X / Safari</Token>
-								<Token>Windows 8.1 Pro / Chrome</Token>
-							</ul>
-						</div>
+						<UserTokens />
 					</div>
 					<div className="col-md-4 visible-md visible-lg">
 						<img className="profile-avatar" src="http://gravatar.com/avatar/cd27466723d44baeab956c5157d22e00.png?s=150"/>

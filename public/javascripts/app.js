@@ -12,6 +12,18 @@ var CreateTopic = require('./lib/TopicCreate');
 var ProfileView = require('./lib/ProfileView');
 var ProfileEdit = require('./lib/ProfileEdit');
 
+$.ajaxSetup({
+	converters: {
+		'text json': function(text) {
+			var result = $.parseJSON(text);
+			if( result && result.hasOwnProperty("payload") ) {
+				return result.payload;
+			}
+			return result;
+		}
+	}
+});
+
 $(function() {
 	var Router = Backbone.Router.extend({
 		routes: {

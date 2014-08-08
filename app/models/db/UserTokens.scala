@@ -38,7 +38,11 @@ object UserTokens {
 		query.filter(_.userId === uid).list
 	}
 
-	def find(token: String): Future[Option[UserToken]] = Pools.readPool execute { implicit s =>
+	def find(id: Long): Future[Option[UserToken]] = Pools.readPool execute { implicit s =>
+		query.filter(_.id === id).firstOption
+	}
+
+	def findByToken(token: String): Future[Option[UserToken]] = Pools.readPool execute { implicit s =>
 		query.filter(_.token === token).firstOption
 	}
 
