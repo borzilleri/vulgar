@@ -227,13 +227,15 @@
 			},
 			onLogin: function() {
 				var r = routes.controllers.api.Tokens.create();
+				var data = {
+					email: this.state.email,
+					persist: this.state.persist
+				};
 				$.ajax({
 					type: r.method,
 					url: r.url,
-					data: {
-						email: this.state.email,
-						persist: this.state.persist
-					}
+					contentType: "application/json",
+					data: JSON.stringify(data)
 				}).done(this.onLoginSuccess);
 			},
 			onLoginSuccess: function() {
@@ -266,21 +268,20 @@
 					return React.DOM.a({className: "list-group-item", onClick: this.handleLoginLink}, "Login");
 				}
 			},
-			makeProfileLink: function() {
-				if( this.state.currentUser ) {
-					return NavLink({className: "list-group-item", href: "/profile"}, "Edit Profile");
-				}
-				return null;
-			},
 			render: function() {
+				var profileLink = this.state.currentUser ?
+					NavLink({className: "list-group-item", href: "/profile"}, "Edit Profile") : null;
+				var createTopicLink = this.state.currentUser ?
+					NavLink({className: "list-group-item", href: "/topic"}, "Create Topic") : null;
+	
 				return (React.DOM.div({className: "panel panel-default"}, 
 					React.DOM.div({className: "panel-heading visible-xs"}, 
 						React.DOM.h3({className: "panel-title"}, "Navigation")
 					), 
 					React.DOM.div({className: "list-group"}, 
 						NavLink({className: "list-group-item", href: "/"}, "All Discussions"), 
-						NavLink({className: "list-group-item", href: "/topic"}, "Create Topic"), 
-						this.makeProfileLink(), 
+						createTopicLink, 
+						profileLink, 
 						this.makeLoginLink()
 					)
 				));
@@ -672,35 +673,83 @@
 			},
 			getInitialState: function() {
 				return {
-					btnActive: false
+					data: this.props.data,
+					tokenName: this.props.data.name,
+					renaming: false
 				}
 			},
-			handleClick: function() {
-				this.setState({btnActive: !this.state.btnActive});
+			onRevoke: function() {
+				this.props.onRevoke(this.state.data.id);
 			},
-			handleRevoke: function() {
-				this.props.onRevoke(this.props.data.id);
+			handleNameChange: function(e) {
+				this.setState({tokenName: e.target.value});
+			},
+			onStartRename: function() {
+				this.setState({renaming: true});
+			},
+			onCancelRename: function() {
+				this.onStopRename(null);
+			},
+			onStopRename: function(data) {
+				if( data ) {
+					this.setState({data: data});
+				}
+				this.setState({renaming: false});
+			},
+			onSaveRename: function() {
+				var r = routes.controllers.api.Tokens.rename(this.state.data.id);
+				$.ajax({
+					type: r.method,
+					url: r.url,
+					contentType: "application/json",
+					data: JSON.stringify({"name": this.state.tokenName})
+				})
+					.done(this.onStopRename);
+				//TODO: Handle fail.
+			},
+			onKeyPress: function(e) {
+				if( "enter" === e.key.toLowerCase() ) {
+					this.onSaveRename();
+				}
 			},
 			render: function() {
-				var actions = [];
-				if( this.state.btnActive ) {
-					actions[0] = React.DOM.div({className: "btn-group", key: "1"}, 
-						React.DOM.button({className: "btn btn-danger", onClick: this.handleRevoke}, 
-							React.DOM.i({className: "fa fa-trash-o fa-lg"}), 
-						"Revoke"
+				var tokenName = this.state.tokenName;
+				if( this.state.renaming ) {
+					return React.DOM.div({className: "list-group-item"}, 
+						React.DOM.div({className: "input-group"}, 
+							React.DOM.input({className: "form-control", type: "text", onChange: this.handleNameChange, 
+							placeholder: this.state.data.browser, value: tokenName, onKeyPress: this.onKeyPress}), 
+							React.DOM.span({className: "input-group-btn"}, 
+								React.DOM.button({className: "btn btn-success", type: "button", onClick: this.onSaveRename}, "Save"), 
+								React.DOM.button({className: "btn btn-danger", type: "button", onClick: this.onCancelRename}, "Cancel")
+							)
 						)
 					);
 				}
-				var tokenName = this.props.data.name ?
-					this.props.data.name : this.props.data.browser;
-				return (
-					React.DOM.li({className: "list-group-item", onClick: this.handleClick}, 
-					tokenName, 
-						ReactCSSTransitionGroup({transitionName: "example"}, 
-						actions
+				else {
+					tokenName = tokenName ? tokenName : this.state.data.browser;
+					return (React.DOM.li({className: "list-group-item"}, 
+						React.DOM.span({className: "list-group-item-text"}, tokenName), 
+						React.DOM.div({className: "btn-group action-group"}, 
+							React.DOM.button({type: "button", className: "btn btn-info dropdown-toggle", 'data-toggle': "dropdown"}, 
+								React.DOM.span({className: "fa fa-lg fa-caret-left"}), 
+								React.DOM.span({className: "sr-only"}, "Toggle Dropdown")
+							), 
+							React.DOM.ul({className: "dropdown-menu dropdown-menu-right", role: "menu"}, 
+								React.DOM.li({className: "bg-info"}, 
+									React.DOM.a({onClick: this.onStartRename}, 
+										React.DOM.i({className: "fa fa-lg fa-fw fa-edit"}), 
+									" Rename")
+								), 
+								React.DOM.li({className: "bg-danger"}, 
+									React.DOM.a({onClick: this.onRevoke}, 
+										React.DOM.i({className: "fa fa-lg fa-fw fa-trash-o"}), 
+									" Revoke")
+								)
+							)
 						)
-					)
-					);
+					));
+				}
 			}
 		});
 	
@@ -752,44 +801,110 @@
 		var Email = React.createClass({displayName: 'Email',
 			getDefaultProps: function() {
 				return {
-					isPrimary: false
+					data: {},
+					onRemove: function() {
+					}
 				}
 			},
-			getInitialState: function() {
-				return {
-					actionsEnabled: false
-				}
+			onRemove: function() {
+				this.props.onRemove(this.props.data.id);
 			},
-			handleClick: function() {
-				this.setState({actionsEnabled: !this.state.actionsEnabled});
-			},
-			handleRemove: function(e) {
-				return false;
-			},
-			makePrimary: function(e) {
+			makePrimary: function() {
 				return false;
 			},
 			render: function() {
-				var primary, actions = [];
-				if( this.state.actionsEnabled && !this.props.isPrimary ) {
-					actions.push(React.DOM.div({className: "btn-group", key: "1"}, 
-						React.DOM.button({className: "btn btn-primary", onClick: this.makePrimary}, "Make Primary"), 
-						React.DOM.button({className: "btn btn-danger", onClick: this.handleRemove}, 
-							React.DOM.i({className: "fa fa-trash-o fa-lg"})
+				var actions = null;
+				if( !this.props.data.primary ) {
+					actions = React.DOM.div({className: "btn-group action-group"}, 
+						React.DOM.button({type: "button", className: "btn btn-info dropdown-toggle", 'data-toggle': "dropdown"}, 
+							React.DOM.span({className: "fa fa-lg fa-caret-left"}), 
+							React.DOM.span({className: "sr-only"}, "Toggle Dropdown")
+						), 
+						React.DOM.ul({className: "dropdown-menu dropdown-menu-right", role: "menu"}, 
+							React.DOM.li({className: "bg-success"}, 
+								React.DOM.a(null, 
+									React.DOM.i({className: "fa fa-lg fa-fw fa-check"}), 
+								" Make Primary")
+							), 
+							React.DOM.li({className: "bg-info"}, 
+								React.DOM.a(null, 
+									React.DOM.i({className: "fa fa-lg fa-fw fa-envelope"}), 
+								" Resend Confirmation Email")
+							), 
+							React.DOM.li({className: "bg-danger"}, 
+								React.DOM.a(null, 
+									React.DOM.i({className: "fa fa-lg fa-fw fa-trash-o"}), 
+								" Remove")
+							)
 						)
-					));
-				}
-				if( this.props.isPrimary ) {
-					primary = React.DOM.span({className: "label label-success"}, "Primary");
+					);
 				}
 				return (
 					React.DOM.li({className: "list-group-item", onClick: this.handleClick}, 
-					this.props.children, " ", primary, 
-						ReactCSSTransitionGroup({transitionName: "example"}, 
+						React.DOM.span({className: "list-group-item-text"}, this.props.data.email), 
 						actions
-						)
 					)
 					);
+			}
+		});
+	
+		var UserEmails = React.createClass({displayName: 'UserEmails',
+			getInitialState: function() {
+				return {
+					emails: []
+				}
+			},
+			componentDidMount: function() {
+				var r = routes.controllers.api.Emails.list();
+				$.ajax({
+					type: r.method,
+					url: r.url
+				}).done((function(data) {
+					this.setState({emails: data});
+				}).bind(this));
+			},
+			removeEmail: function() {
+	
+			},
+			confirmEmail: function() {
+	
+			},
+			makePrimary: function() {
+	
+			},
+			render: function() {
+				var emails = [];
+				for( var i in this.state.emails ) {
+					emails.push(Email({key: this.state.emails[i].id, 
+					onRemove: this.removeEmail, data: this.state.emails[i]}));
+				}
+	
+				return (React.DOM.div({className: "panel panel-default"}, 
+					React.DOM.div({className: "panel-heading"}, 
+						React.DOM.h3({className: "panel-title"}, "Emails")
+					), 
+					React.DOM.ul({className: "list-group"}, emails, 
+						React.DOM.li({className: "list-group-item"}, 
+							React.DOM.div({className: "input-group"}, 
+								React.DOM.input({className: "form-control", type: "email", placeholder: "add new email"}), 
+								React.DOM.span({className: "input-group-btn"}, 
+									React.DOM.button({className: "btn btn-success", type: "button"}, "Add")
+								)
+							)
+						)
+					)
+				));
+			}
+		});
+	
+		var DisplayName = React.createClass({displayName: 'DisplayName',
+			render: function() {
+				return React.DOM.div({className: "display-name input-group"}, 
+					React.DOM.input({type: "text", className: "form-control", placeholder: "Display Name"}), 
+					React.DOM.span({className: "input-group-btn"}, 
+						React.DOM.button({className: "btn btn-success", type: "button"}, "Save")
+					)
+				);
 			}
 		});
 	
@@ -798,40 +913,16 @@
 				vent.trigger('page:title', "Edit Your Profile");
 			},
 			render: function() {
-				return (
-					React.DOM.div({className: "edit-profile row"}, 
-						React.DOM.div({className: "col-md-8"}, 
-							React.DOM.div({className: "display-name input-group"}, 
-								React.DOM.input({type: "text", className: "form-control", placeholder: "Display Name"}), 
-								React.DOM.span({className: "input-group-btn"}, 
-									React.DOM.button({className: "btn btn-success", type: "button"}, "Save")
-								)
-							), 
-							React.DOM.div({className: "panel panel-default"}, 
-								React.DOM.div({className: "panel-heading"}, 
-									React.DOM.h3({className: "panel-title"}, "Emails")
-								), 
-								React.DOM.ul({className: "list-group"}, 
-									Email({isPrimary: true}, "primary@example.com"), 
-									Email(null, "secondary1@example.com"), 
-									Email(null, "secondary1@example.com"), 
-									React.DOM.li({className: "list-group-item"}, 
-										React.DOM.div({className: "input-group"}, 
-											React.DOM.input({className: "form-control", type: "email", placeholder: "add new email"}), 
-											React.DOM.span({className: "input-group-btn"}, 
-												React.DOM.button({className: "btn btn-success", type: "button"}, "Add")
-											)
-										)
-									)
-								)
-							), 
-							UserTokens(null)
-						), 
-						React.DOM.div({className: "col-md-4 visible-md visible-lg"}, 
-							React.DOM.img({className: "profile-avatar", src: "http://gravatar.com/avatar/cd27466723d44baeab956c5157d22e00.png?s=150"})
-						)
+				return (React.DOM.div({className: "edit-profile row"}, 
+					React.DOM.div({className: "col-md-8"}, 
+						DisplayName(null), 
+						UserEmails(null), 
+						UserTokens(null)
+					), 
+					React.DOM.div({className: "col-md-4 visible-md visible-lg"}, 
+						React.DOM.img({className: "profile-avatar", src: "http://gravatar.com/avatar/cd27466723d44baeab956c5157d22e00.png?s=150"})
 					)
-					);
+				));
 			}
 		});
 	

@@ -71,13 +71,15 @@ define(function(require) {
 		},
 		onLogin: function() {
 			var r = routes.controllers.api.Tokens.create();
+			var data = {
+				email: this.state.email,
+				persist: this.state.persist
+			};
 			$.ajax({
 				type: r.method,
 				url: r.url,
-				data: {
-					email: this.state.email,
-					persist: this.state.persist
-				}
+				contentType: "application/json",
+				data: JSON.stringify(data)
 			}).done(this.onLoginSuccess);
 		},
 		onLoginSuccess: function() {
@@ -110,21 +112,20 @@ define(function(require) {
 				return <a className="list-group-item" onClick={this.handleLoginLink}>Login</a>;
 			}
 		},
-		makeProfileLink: function() {
-			if( this.state.currentUser ) {
-				return <NavLink className="list-group-item" href="/profile">Edit Profile</NavLink>;
-			}
-			return null;
-		},
 		render: function() {
+			var profileLink = this.state.currentUser ?
+				<NavLink className="list-group-item" href="/profile">Edit Profile</NavLink> : null;
+			var createTopicLink = this.state.currentUser ?
+				<NavLink className="list-group-item" href="/topic">Create Topic</NavLink> : null;
+
 			return (<div className="panel panel-default">
 				<div className="panel-heading visible-xs">
 					<h3 className="panel-title">Navigation</h3>
 				</div>
 				<div className="list-group">
 					<NavLink className="list-group-item" href="/">All Discussions</NavLink>
-					<NavLink className="list-group-item" href="/topic">Create Topic</NavLink>
-					{this.makeProfileLink()}
+					{createTopicLink}
+					{profileLink}
 					{this.makeLoginLink()}
 				</div>
 			</div>);

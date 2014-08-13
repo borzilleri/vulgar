@@ -1,5 +1,8 @@
 package controllers
 
+import io.rampant.vulgar.security.AuthTokenManager
+import io.rampant.vulgar.utils.UserAgent
+import models.UserToken
 import models.db.{UserEmails, UserTokens, Users}
 import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.mvc._
@@ -38,6 +41,19 @@ object Application extends Controller {
 	 */
 	def editProfile = main("Edit Your Profile")
 
+	def login = Action.async {
+		request =>
+			UserEmails.findByEmail("jonathan@borzilleri.net").flatMap({
+				case None => Future.successful(Unauthorized);
+				case Some(e) =>
+					val t = UserToken.makeToken
+					val b = UserAgent.makeString(request.headers.get("User-Agent").getOrElse(""))
+					UserTokens.insert(UserToken(None, e.userId, t, java.time.Instant.now(), sessionOnly = false, b, None))
+						.map({ token => Redirect(routes.Application.index())
+						.withCookies(Cookie(AuthTokenManager.tokenCookieName, t, None, httpOnly = true))
+					})
+			})
+	}
 
 	def debug = Action.async {
 		Users.list.flatMap({ users =>
@@ -56,7 +72,7 @@ object Application extends Controller {
 
 	def useragent = Action {
 		request =>
-			Ok(io.rampant.vulgar.utils.UserAgent.makeString(request.headers.get("User-Agent").get))
+			Ok(UserAgent.parseFromString(request.headers.get("User-Agent").get).toString)
 	}
 
 }

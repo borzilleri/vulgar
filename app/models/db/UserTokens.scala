@@ -57,4 +57,9 @@ object UserTokens {
 	def delete(tokenId: Long) = Pools.writePool execute { implicit s =>
 		query.filter(_.id === tokenId).delete
 	}
+
+	def update(token: UserToken) = Pools.writePool execute { implicit s =>
+		query.update(token)
+		token
+	}
 }

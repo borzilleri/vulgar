@@ -161,10 +161,6 @@ body {
 		margin-bottom: 20px;
 	}
 
-	.list-group-item {
-		cursor: pointer;
-	}
-
 	.profile-avatar {
 		padding: 4px;
 		border: 1px solid #ddd;
@@ -176,9 +172,22 @@ body {
 	}
 
 	.list-group-item {
-		.btn-group {
+		.token-name {
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		.action-group {
+			&.open .dropdown-toggle {
+				.fa-icon-rotate(270deg, 3);
+			}
+
 			.pull-right;
-			margin: -10px -15px;
+			position: absolute;
+			top: 0;
+			right: 0;
+			transition: all 400ms ease;
+
 			.btn {
 				padding: 9px 15px;
 				border-radius: 0;
@@ -192,19 +201,19 @@ body {
 }
 
 .example-enter {
-	opacity: 0.01;
-	transition: opacity .5s ease;
+	left: 100px;
+	transition: .5s ease;
 }
 
 .example-enter.example-enter-active {
-	opacity: 1;
+	left: auto;
 }
 
 .example-leave {
-	opacity: 1;
-	transition: opacity .5s ease;
+	left: auto;
+	transition: .5s ease;
 }
 
 .example-leave.example-leave-active {
-	opacity: 0.01;
+	left: 100px;
 }

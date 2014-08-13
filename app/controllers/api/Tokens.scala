@@ -15,17 +15,36 @@ object Tokens extends Controller {
 
 	case class Login(email: String, persist: Boolean)
 
+	case class Rename(name: String)
+
 	val loginForm = Form(mapping(
 		"email" -> email,
 		"persist" -> boolean
 	)(Login.apply)(Login.unapply))
+
+	val renameForm = Form(mapping(
+		"name" -> text
+	)(Rename.apply)(Rename.unapply))
 
 	def list = (Secured.Authenticated andThen Secured.Authorized()).async {
 		implicit request =>
 			UserTokens.list(request.user.get).map(Json.toJson(_)).map(Ok(_))
 	}
 
-	def create = Action.async(parse.urlFormEncoded) {
+	def rename(id: Long) = (Secured.Authenticated andThen Secured.Authorized()).async(parse.json) {
+		implicit request =>
+			renameForm.bindFromRequest().fold(
+				errors => Future.successful(BadRequest("Invalid name")),
+				model => UserTokens.find(id).flatMap({
+					case None => Future.successful(NotFound)
+					case Some(token) => UserTokens.update(token.copy(name = Some(model.name))).map({ t =>
+						Ok(Json.toJson(t));
+					})
+				})
+			)
+	}
+
+	def create = Action.async(parse.json) {
 		implicit request =>
 			val form = loginForm.bindFromRequest()
 			form.fold(
