@@ -1,4 +1,4 @@
-@(title: String = "VulgarBBS")(implicit r: RequestHeader)
+@(title: String = "VulgarBBS", userInfo: Option[String])(implicit r: RequestHeader)
 <!DOCTYPE html>
 <html>
 	<head lang="en">
@@ -9,16 +9,21 @@
 
 		<link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
-		<script type="text/javascript" src="@routes.JsRoutes.javascriptRoutes()"></script>
 		<script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.js")"></script>
 		<script type="text/javascript" src="@routes.Assets.at("lib/react/react-with-addons.js")"></script>
 		<script type="text/javascript" src="@routes.Assets.at("lib/underscorejs/underscore.js")"></script>
 		<script type="text/javascript" src="@routes.Assets.at("lib/backbonejs/backbone.js")"></script>
 		<script type="text/javascript" src="@routes.Assets.at("lib/ace/src-min/ace.js")"></script>
 		<script type="text/javascript" src="@routes.Assets.at("lib/marked/marked.js")"></script>
-
 		<script type="text/javascript" src="@routes.Assets.at("lib/bootstrap/js/bootstrap.js")"></script>
 
+		<script type="text/javascript">
+			window.Vulgar = {
+				user: @Html(userInfo.getOrElse("null"))
+			}
+		</script>
+
+		<script type="text/javascript" src="@routes.JsRoutes.javascriptRoutes()"></script>
 		<script type="text/javascript" src="@routes.Assets.at("javascripts/bundle.js")"></script>
 	</head>
 	<body></body>
