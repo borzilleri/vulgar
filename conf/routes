@@ -26,6 +26,6 @@ GET           /jsroutes                   controllers.JsRoutes.javascriptRoutes
 # Map static resources from the /public folder to the /assets URL path
 GET           /assets/*file               controllers.Assets.at(path="/public", file)
 
-GET           /debug                      controllers.Application.debug
-GET           /ua                         controllers.Application.useragent
-GET           /login                      controllers.Application.login
+GET           /debug                      controllers.Debug.debug
+GET           /ua                         controllers.Debug.useragent
+GET           /login                      controllers.Debug.login
