@@ -21,9 +21,9 @@ object Secured {
 		}
 	}
 
-	def Authorized(roles: Seq[String] = Seq()) = new ActionFilter[AuthRequest] {
+	def Authorized(result: Result = Unauthorized, roles: Seq[String] = Seq()) = new ActionFilter[AuthRequest] {
 		override protected def filter[A](request: AuthRequest[A]): Future[Option[Result]] = request.user match {
-			case None => Future.successful(Some(Unauthorized))
+			case None => Future.successful(Some(result))
 			case Some(user) =>
 				// TODO: For now, any authenticated user is "Authorized"
 				Future.successful(None)
