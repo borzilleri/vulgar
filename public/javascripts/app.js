@@ -35,6 +35,7 @@ $(function() {
 		},
 		initialize: function(options) {
 			this.listenTo(vent, 'navigateTo', this.navTo);
+			this.user = window.Vulgar.user
 		},
 		navTo: function(url) {
 			//TODO: Do we do something if url is actually empty?
@@ -43,7 +44,7 @@ $(function() {
 			}
 		},
 		render: function(component) {
-			React.renderComponent(<Main main={component} />, document.body);
+			React.renderComponent(<Main main={component} user={this.user}/>, document.body);
 		},
 		listTopics: function() {
 			this.render(<TopicList />);
@@ -55,7 +56,7 @@ $(function() {
 			this.render(<CreateTopic />);
 		},
 		editProfile: function() {
-			this.render(<ProfileEdit />);
+			this.render(<ProfileEdit user={this.user}/>);
 		},
 		viewProfile: function() {
 			this.render(<ProfileView />)

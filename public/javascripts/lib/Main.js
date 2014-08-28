@@ -37,6 +37,11 @@ define(function(require) {
 	});
 
 	var Sidebar = React.createClass({
+		getDefaultProps: function() {
+			return {
+				user: null
+			}
+		},
 		getInitialState: function() {
 			return {
 				/**
@@ -46,19 +51,9 @@ define(function(require) {
 				 * null: (or any other value) Show the login link.
 				 */
 				loginState: null,
-				currentUser: null,
 				email: null,
 				persist: false
 			}
-		},
-		componentDidMount: function() {
-			var r = routes.controllers.api.Root.whoami();
-			$.ajax({
-				type: r.method,
-				url: r.url
-			}).done((function(data) {
-				this.setState({currentUser: data});
-			}).bind(this));
 		},
 		handleLoginLink: function() {
 			this.setState({loginState: "form"});
@@ -86,9 +81,9 @@ define(function(require) {
 			this.setState({loginState: "done"});
 		},
 		makeLoginLink: function() {
-			if( this.state.currentUser ) {
+			if( this.props.user ) {
 				// TODO: Replace this with a route entry.
-				return <a className="list-group-item" href="/logout">Logout {this.state.currentUser.displayName}</a>;
+				return <a className="list-group-item" href="/logout">Logout {this.props.user.displayName}</a>;
 			}
 			else if( "form" === this.state.loginState ) {
 				return <div className="list-group-item">
@@ -113,11 +108,11 @@ define(function(require) {
 			}
 		},
 		render: function() {
-			var profileLink = this.state.currentUser ?
-				<NavLink className="list-group-item" href="/profile">Edit Profile</NavLink> : null;
-			var createTopicLink = this.state.currentUser ?
-				<NavLink className="list-group-item" href="/topic">Create Topic</NavLink> : null;
-
+			var profileLink = null, createTopicLink = null;
+			if( this.props.user ) {
+				profileLink = <NavLink className="list-group-item" href="/profile">Edit Profile</NavLink>;
+				createTopicLink = <NavLink className="list-group-item" href="/topic">Create Topic</NavLink>;
+			}
 			return (<div className="panel panel-default">
 				<div className="panel-heading visible-xs">
 					<h3 className="panel-title">Navigation</h3>
@@ -140,7 +135,7 @@ define(function(require) {
 					<div className="row">
 						<div className="main-content col-sm-9 col-sm-push-3">{this.props.main}</div>
 						<div className="sidebar col-sm-3 col-sm-pull-9">
-							<Sidebar/>
+							<Sidebar user={this.props.user}/>
 						</div>
 					</div>
 				</div>

@@ -247,13 +247,42 @@ define(function(require) {
 	});
 
 	var DisplayName = React.createClass({
+		getDefaultProps: function() {
+			return {
+				initialName: ""
+			}
+		},
+		getInitialState: function() {
+			return {
+				name: this.props.initialName
+			}
+		},
+		handleNameChange: function(e) {
+			this.setState({name: e.target.value})
+		},
+		handleCancel: function(e) {
+			this.setState({name: this.props.initialName});  
+		},
+		handleSave: function(e) {
+
+		},
 		render: function() {
-			return <div className="display-name input-group">
-				<input type="text" className="form-control" placeholder="Display Name"/>
-				<span className="input-group-btn">
-					<button className="btn btn-success" type="button">Save</button>
-				</span>
-			</div>;
+			var saveBtn = null, cancelBtn = null;
+			if( this.state.name !== this.props.initialName ) {
+				cancelBtn = <button className="btn btn-danger" type="button" onClick={this.handleCancel}>Cancel</button>;
+				if( this.state.name ) {
+					saveBtn = <button className="btn btn-success" type="button" onClick={this.handleSave}>Save</button>;
+				}
+			}
+			return (
+				<div className="display-name input-group">
+					<input type="text" className="form-control" onChange={this.handleNameChange}
+					placeholder="Display Name" value={this.state.name}/>
+					<span className="input-group-btn">
+					{cancelBtn}
+					{saveBtn}
+					</span>
+				</div>);
 		}
 	});
 
@@ -264,7 +293,7 @@ define(function(require) {
 		render: function() {
 			return (<div className="edit-profile row">
 				<div className="col-md-8">
-					<DisplayName />
+					<DisplayName initialName={this.props.user.displayName}/>
 					<UserEmails />
 					<UserTokens />
 				</div>

@@ -81,6 +81,7 @@
 			},
 			initialize: function(options) {
 				this.listenTo(vent, 'navigateTo', this.navTo);
+				this.user = window.Vulgar.user
 			},
 			navTo: function(url) {
 				//TODO: Do we do something if url is actually empty?
@@ -89,7 +90,7 @@
 				}
 			},
 			render: function(component) {
-				React.renderComponent(Main({main: component}), document.body);
+				React.renderComponent(Main({main: component, user: this.user}), document.body);
 			},
 			listTopics: function() {
 				this.render(TopicList(null));
@@ -101,7 +102,7 @@
 				this.render(CreateTopic(null));
 			},
 			editProfile: function() {
-				this.render(ProfileEdit(null));
+				this.render(ProfileEdit({user: this.user}));
 			},
 			viewProfile: function() {
 				this.render(ProfileView(null))
@@ -193,6 +194,11 @@
 		});
 	
 		var Sidebar = React.createClass({displayName: 'Sidebar',
+			getDefaultProps: function() {
+				return {
+					user: null
+				}
+			},
 			getInitialState: function() {
 				return {
 					/**
@@ -202,19 +208,9 @@
 					 * null: (or any other value) Show the login link.
 					 */
 					loginState: null,
-					currentUser: null,
 					email: null,
 					persist: false
 				}
-			},
-			componentDidMount: function() {
-				var r = routes.controllers.api.Root.whoami();
-				$.ajax({
-					type: r.method,
-					url: r.url
-				}).done((function(data) {
-					this.setState({currentUser: data});
-				}).bind(this));
 			},
 			handleLoginLink: function() {
 				this.setState({loginState: "form"});
@@ -242,9 +238,9 @@
 				this.setState({loginState: "done"});
 			},
 			makeLoginLink: function() {
-				if( this.state.currentUser ) {
+				if( this.props.user ) {
 					// TODO: Replace this with a route entry.
-					return React.DOM.a({className: "list-group-item", href: "/logout"}, "Logout ", this.state.currentUser.displayName);
+					return React.DOM.a({className: "list-group-item", href: "/logout"}, "Logout ", this.props.user.displayName);
 				}
 				else if( "form" === this.state.loginState ) {
 					return React.DOM.div({className: "list-group-item"}, 
@@ -269,11 +265,11 @@
 				}
 			},
 			render: function() {
-				var profileLink = this.state.currentUser ?
-					NavLink({className: "list-group-item", href: "/profile"}, "Edit Profile") : null;
-				var createTopicLink = this.state.currentUser ?
-					NavLink({className: "list-group-item", href: "/topic"}, "Create Topic") : null;
-	
+				var profileLink = null, createTopicLink = null;
+				if( this.props.user ) {
+					profileLink = NavLink({className: "list-group-item", href: "/profile"}, "Edit Profile");
+					createTopicLink = NavLink({className: "list-group-item", href: "/topic"}, "Create Topic");
+				}
 				return (React.DOM.div({className: "panel panel-default"}, 
 					React.DOM.div({className: "panel-heading visible-xs"}, 
 						React.DOM.h3({className: "panel-title"}, "Navigation")
@@ -296,7 +292,7 @@
 						React.DOM.div({className: "row"}, 
 							React.DOM.div({className: "main-content col-sm-9 col-sm-push-3"}, this.props.main), 
 							React.DOM.div({className: "sidebar col-sm-3 col-sm-pull-9"}, 
-								Sidebar(null)
+								Sidebar({user: this.props.user})
 							)
 						)
 					)
@@ -898,13 +894,42 @@
 		});
 	
 		var DisplayName = React.createClass({displayName: 'DisplayName',
+			getDefaultProps: function() {
+				return {
+					initialName: ""
+				}
+			},
+			getInitialState: function() {
+				return {
+					name: this.props.initialName
+				}
+			},
+			handleNameChange: function(e) {
+				this.setState({name: e.target.value})
+			},
+			handleCancel: function(e) {
+				this.setState({name: this.props.initialName});  
+			},
+			handleSave: function(e) {
+	
+			},
 			render: function() {
-				return React.DOM.div({className: "display-name input-group"}, 
-					React.DOM.input({type: "text", className: "form-control", placeholder: "Display Name"}), 
-					React.DOM.span({className: "input-group-btn"}, 
-						React.DOM.button({className: "btn btn-success", type: "button"}, "Save")
-					)
-				);
+				var saveBtn = null, cancelBtn = null;
+				if( this.state.name !== this.props.initialName ) {
+					cancelBtn = React.DOM.button({className: "btn btn-danger", type: "button", onClick: this.handleCancel}, "Cancel");
+					if( this.state.name ) {
+						saveBtn = React.DOM.button({className: "btn btn-success", type: "button", onClick: this.handleSave}, "Save");
+					}
+				}
+				return (
+					React.DOM.div({className: "display-name input-group"}, 
+						React.DOM.input({type: "text", className: "form-control", onChange: this.handleNameChange, 
+						placeholder: "Display Name", value: this.state.name}), 
+						React.DOM.span({className: "input-group-btn"}, 
+						cancelBtn, 
+						saveBtn
+						)
+					));
 			}
 		});
 	
@@ -915,7 +940,7 @@
 			render: function() {
 				return (React.DOM.div({className: "edit-profile row"}, 
 					React.DOM.div({className: "col-md-8"}, 
-						DisplayName(null), 
+						DisplayName({initialName: this.props.user.displayName}), 
 						UserEmails(null), 
 						UserTokens(null)
 					), 
